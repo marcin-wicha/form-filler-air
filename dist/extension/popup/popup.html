@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Form Filler</title>
+    <link rel="stylesheet" href="popup.css" />
+    <link rel="stylesheet" href="../reset.css" />
+</head>
+<body>
+    <div>
+        <form class="popup" id="form">
+            <label name="API Key">
+                <input required type="text" id="apiKey" placeholder="Enter your API key" />
+            </label>
+            <label name="Model">
+                <select id="model">
+                    <option value="">Select a model</option>
+                    <option value="openai/gpt-4.1">GPT-4.1</option>
+                    <option value="deepseek/DeepSeek-R1">DeepSeek R1</option>
+                </select>
+            </label>
+        </form>
+    </div>
+    <div id="healthcheck" class="healthcheck"></div>
+    <script src="popup.js"></script>
+</body>
+</html>

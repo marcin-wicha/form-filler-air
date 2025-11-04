@@ -4,6 +4,6 @@
     "description": "Form filler using LLMs to generate relevant fake data",
     "manifest_version": 3,
     "action": {
-        "default_popup": "popup.html"
+        "default_popup": "popup/popup.html"
     }
 }

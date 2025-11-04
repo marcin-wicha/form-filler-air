@@ -2,8 +2,19 @@
   "scripts": {
     "build": "tsc"
   },
-  "devDependencies": {
+  "type": "module",
+  "author": "Marcin Wicha",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/marcinwicha/form-filler.git"
+  },
+  "keywords": [
+    "form-filler",
+    "llm",
+    "fake-data"
+  ],
     "chrome-types": "0.1.385",
     "typescript": "5.9.3"
-  }
 }
+
