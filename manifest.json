@@ -1,0 +1,9 @@
+{
+    "name": "Form Filler",
+    "version": "1.0",
+    "description": "Form filler using LLMs to generate relevant fake data",
+    "manifest_version": 3,
+    "action": {
+        "default_popup": "popup.html"
+    }
+}
