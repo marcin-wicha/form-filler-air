@@ -38,5 +38,8 @@ modelSelect.addEventListener('change', async (event) => {
         const healthcheckDiv = document.getElementById('healthcheck');
         healthcheckDiv.classList.remove('hidden');
         chrome.storage.local.set({ model: model, apiKey: apiKey });
+        chrome.contextMenus.update("form-filler_field", {
+            title: `Fill out field with ${model}`
+        });
     }
 });
