@@ -7,8 +7,8 @@
     <link rel="stylesheet" href="../reset.css" />
 </head>
 <body>
-    <div>
-        <form class="popup" id="form">
+    <div class="popup">
+        <form class="form" id="form">
             <label name="API Key">
                 <input required type="text" id="apiKey" placeholder="Enter your API key" />
             </label>
@@ -20,8 +20,9 @@
                 </select>
             </label>
         </form>
+        <div id="healthcheck" class="healthcheck hidden"><p>Setup is complete and ready to use &#x2705; </p></div>
     </div>
-    <div id="healthcheck" class="healthcheck"></div>
+    <script src="../llm/system.js"></script>
     <script src="popup.js"></script>
 </body>
 </html>

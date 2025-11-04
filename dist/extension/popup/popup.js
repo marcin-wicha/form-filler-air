@@ -1,5 +1,17 @@
 const modelSelect = document.getElementById('model');
 const apiKeyInput = document.getElementById('apiKey');
+
+chrome.storage.local.get('model', async ({ model }) => {
+    const { apiKey } = await chrome.storage.local.get('apiKey');
+    if (model && apiKey) {
+        const healthcheckDiv = document.getElementById('healthcheck');
+        healthcheckDiv.classList.remove('hidden');
+        const form = document.getElementById('form');
+        form.classList.add('hidden');
+    }
+});
+
+
 modelSelect.addEventListener('change', async (event) => {
     const model = event.target.value;
 
@@ -18,14 +30,13 @@ modelSelect.addEventListener('change', async (event) => {
         },
         body: JSON.stringify({
             model: model,
-            messages: [{ role: 'system', content: 'You are a helpful assistant that helps the user fill out forms with relevant fake data. You will be supplied with HTML markup for the form field and use that information to establish the format of the data required. The data must be randomized.' }]
+            messages: [{ role: 'system', content: SYSTEM_PROMPT }]
         })
     });
     const data = await response.json();
     if (response.ok) {
         const healthcheckDiv = document.getElementById('healthcheck');
-        healthcheckDiv.innerHTML = `<p>Setup is complete and ready to use &#x2705; </p>`;
-
+        healthcheckDiv.classList.remove('hidden');
         chrome.storage.local.set({ model: model, apiKey: apiKey });
     }
 });
