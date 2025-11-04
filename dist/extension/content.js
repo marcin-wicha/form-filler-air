@@ -22,7 +22,10 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
 async function fillOutField(targetElement) {
     const data = await askForData(targetElement);
-    return data;
+    if (!data) return;
+
+    targetElement.value = data;
+    targetElement.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
 async function askForData(targetElement) {
@@ -44,7 +47,6 @@ async function askForData(targetElement) {
             messages: [{ role: 'system', content: SYSTEM_PROMPT }, { role: 'user', content: `Field serialized as HTML: ${targetElement.outerHTML}, Field labels: ${labels}` }]
         })
     });
-    const data = await response.json();
-    console.log(data);
-    return data;
+    const message = await response.json();
+    try { return JSON.parse(message.choices[0].message.content).data; } catch (error) { return null; }
 }
