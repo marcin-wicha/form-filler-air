@@ -1,5 +1,3 @@
-const SYSTEM_PROMPT = "You are a helpful assistant that helps the user fill out forms with relevant fake data. You will be supplied with HTML markup for the form field and use that information to establish the format of the data required. The data must be randomized. Answer only with the fake data in JSON format: '{data: <fake data> }'";
-
 document.addEventListener("mousedown", (e) => {
     if (e.button === 2) {
         document.querySelectorAll("[data-form-filler-target]").forEach(element => {
@@ -44,7 +42,7 @@ async function askForData(targetElement) {
         },
         body: JSON.stringify({
             model: model,
-            messages: [{ role: 'system', content: SYSTEM_PROMPT }, { role: 'user', content: `Field serialized as HTML: ${targetElement.outerHTML}, Field labels: ${labels}` }]
+            messages: [{ role: 'system', content: SYSTEM_PROMPT }, { role: 'user', content: `Field serialized as HTML: ${targetElement.outerHTML}, Field labels: ${labels}, Parent form serialized as HTML: ${targetElement.form.outerHTML}` }]
         })
     });
     const message = await response.json();
