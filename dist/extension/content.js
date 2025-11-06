@@ -45,7 +45,9 @@ async function fillOutField(targetElement) {
         labels: getLabelsForElement(targetElement),
         form: targetElement.form.outerHTML
     });
+    const loadingDialog = showLoadingDialog();
     const data = await askForData({ systemPrompt: FIELD_FILLING_SYSTEM_PROMPT, content });
+    loadingDialog.close();
     if (!data) return;
 
     targetElement.value = data;
@@ -56,7 +58,9 @@ async function fillOutForm(form) {
     const content = getContent({
         form: form.outerHTML,
     });
+    const loadingDialog = showLoadingDialog();
     const data = await askForData({ systemPrompt: FORM_FILLING_SYSTEM_PROMPT, content });
+    loadingDialog.close();
     if (!data) return;
 
     data.forEach(field => {
