@@ -30,7 +30,7 @@ modelSelect.addEventListener('change', async (event) => {
         },
         body: JSON.stringify({
             model: model,
-            messages: [{ role: 'system', content: SYSTEM_PROMPT }]
+            messages: [{ role: 'system', content: "healthcheck, do not respond" }]
         })
     });
     const data = await response.json();
@@ -42,6 +42,12 @@ modelSelect.addEventListener('change', async (event) => {
             id: "form-filler_field",
             title: `Fill out field with ${model}`,
             contexts: ["editable"]
+        });
+        chrome.contextMenus.create({
+            id: "form-filler_form",
+            title: `Fill out this form with ${model}`,
+            contexts: ["editable"],
+            enabled: false,
         });
     }
 });
