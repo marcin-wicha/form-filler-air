@@ -8,6 +8,26 @@ chrome.storage.local.get('model', async ({ model }) => {
         healthcheckDiv.classList.remove('hidden');
         const apiKeyLabel = document.getElementById('apiKeyLabel');
         apiKeyLabel.classList.add('hidden');
+    } else {
+        const response = await fetch('https://models.github.ai/catalog/models', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/vnd.github+json',
+                'X-GitHub-Api-Version': '2022-11-28'
+            },
+        });
+        const models = await response.json();
+        const modelSelector = document.getElementById('model');
+
+        models.forEach(model => {
+            const option = document.createElement('option');
+            option.value = model.id;
+            option.textContent = model.name;
+            modelSelector.appendChild(option);
+        });
+        modelSelector.removeChild(document.getElementById('loading'));
     }
 });
 
@@ -30,7 +50,7 @@ modelSelect.addEventListener('change', async (event) => {
         },
         body: JSON.stringify({
             model: model,
-            messages: [{ role: 'system', content: "this is a healthcheck request, respond with 'ok' if the model is supported" }]
+            messages: [{ role: 'system', content: "this is a healthcheck request, respond with 'ok' if the model is supported" }, { role: 'user', content: "did this work?" }]
         })
     });
     const data = await response.json();
