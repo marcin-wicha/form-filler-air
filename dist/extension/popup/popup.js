@@ -30,7 +30,7 @@ modelSelect.addEventListener('change', async (event) => {
         },
         body: JSON.stringify({
             model: model,
-            messages: [{ role: 'system', content: "healthcheck, do not respond" }]
+            messages: [{ role: 'system', content: "this is a healthcheck request, respond with 'ok' if the model is supported" }]
         })
     });
     const data = await response.json();
