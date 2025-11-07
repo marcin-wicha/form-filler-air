@@ -6,8 +6,8 @@ chrome.storage.local.get('model', async ({ model }) => {
     if (model && apiKey) {
         const healthcheckDiv = document.getElementById('healthcheck');
         healthcheckDiv.classList.remove('hidden');
-        const form = document.getElementById('form');
-        form.classList.add('hidden');
+        const apiKeyLabel = document.getElementById('apiKeyLabel');
+        apiKeyLabel.classList.add('hidden');
     }
 });
 
