@@ -3,31 +3,35 @@ const apiKeyInput = document.getElementById('apiKey');
 
 chrome.storage.local.get('model', async ({ model }) => {
     const { apiKey } = await chrome.storage.local.get('apiKey');
+
     if (model && apiKey) {
         const healthcheckDiv = document.getElementById('healthcheck');
         healthcheckDiv.classList.remove('hidden');
         const apiKeyLabel = document.getElementById('apiKeyLabel');
         apiKeyLabel.classList.add('hidden');
-    } else {
-        const response = await fetch('https://models.github.ai/catalog/models', {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json',
-                'Accept': 'application/vnd.github+json',
-                'X-GitHub-Api-Version': '2022-11-28'
-            },
-        });
-        const models = await response.json();
-        const modelSelector = document.getElementById('model');
+    }
 
-        models.forEach(model => {
-            const option = document.createElement('option');
-            option.value = model.id;
-            option.textContent = model.name;
-            modelSelector.appendChild(option);
-        });
-        modelSelector.removeChild(document.getElementById('loading'));
+    const response = await fetch('https://models.github.ai/catalog/models', {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28'
+        },
+    });
+    const models = await response.json();
+    const modelSelector = document.getElementById('model');
+
+    models.forEach(model => {
+        const option = document.createElement('option');
+        option.value = model.id;
+        option.textContent = model.name;
+        modelSelector.appendChild(option);
+    });
+    modelSelector.removeChild(document.getElementById('loading'));
+    if (model) {
+        modelSelector.value = model.id;
     }
 });
 
