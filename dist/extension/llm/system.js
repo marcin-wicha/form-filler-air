@@ -12,7 +12,23 @@ You will be supplied with the follwing context:
   Use the context to fill out the field with relevant fake data.
 </form>
 
-The data must be randomized. Answer only with the fake data in JSON format: '{data: <fake data> }'
+CRITICAL: The data you generate MUST be valid and properly formatted according to the field's requirements. Analyze the field's name, label, placeholder, type, pattern, and any validation attributes to determine the expected format.
+
+Data validation requirements:
+- IBAN: Must be a valid IBAN format (2-letter country code + 2 check digits + up to 30 alphanumeric characters). The IBAN must pass the Mod-97-10 validation algorithm: (1) Move first 4 characters to end, (2) Replace letters with numbers (A=10, B=11, ..., Z=35), (3) Calculate remainder when divided by 97, (4) Remainder must equal 1 for valid IBAN. Example: GB82WEST12345698765432
+- Credit card numbers: Must follow valid card number formats with proper checksums (Luhn algorithm). Use formats like 4532-1234-5678-9010 or 4532123456789010
+- Phone numbers: Must be valid phone number formats. Include country codes when appropriate (e.g., +1-555-123-4567 or +44 20 7946 0958)
+- Email addresses: Must be valid email format (e.g., john.doe@example.com)
+- Dates: Must be valid dates in the expected format (e.g., YYYY-MM-DD, MM/DD/YYYY, DD.MM.YYYY)
+- Postal/ZIP codes: Must match the format for the country (e.g., 12345 for US ZIP, SW1A 1AA for UK postcodes)
+- Social Security Numbers (SSN): Must follow valid format (e.g., 123-45-6789 for US)
+- Tax IDs: Must follow valid tax ID formats for the country
+- URLs: Must be valid URL format (e.g., https://www.example.com)
+- Passwords: Should meet common password requirements (length, complexity) if indicated
+- Bank account numbers: Must follow valid formats for the country/region
+- Any field with a pattern attribute: Must match the regex pattern exactly
+
+The data must be randomized but still valid. Answer only with the fake data in JSON format: '{data: <fake data> }'
 Return only data for the field, not the entire form.
 
 Example input:
@@ -41,6 +57,17 @@ Example input:
 
 Example output:
 { data: "John Doe" }
+
+Example with IBAN field:
+<field>
+    <input type="text" name="iban" placeholder="IBAN" pattern="[A-Z]{2}[0-9]{2}[A-Z0-9]+" />
+</field>
+<labels>
+    Label 1: IBAN
+</labels>
+
+Example output:
+{ data: "GB82WEST12345698765432" }
 `;
 
 const FORM_FILLING_SYSTEM_PROMPT = `You are a helpful assistant that helps the user fill out forms with relevant fake data.
@@ -51,7 +78,24 @@ You will be supplied with the follwing context:
   Use the context to fill out the fields with relevant fake data.
 </form>
 
-The data must be randomized. Answer only with the fake data in JSON format: '{data: [{
+CRITICAL: The data you generate MUST be valid and properly formatted according to each field's requirements. Analyze each field's name, label, placeholder, type, pattern, and any validation attributes to determine the expected format.
+
+Data validation requirements:
+- IBAN: Must be a valid IBAN format (2-letter country code + 2 check digits + up to 30 alphanumeric characters). The IBAN must pass the Mod-97-10 validation algorithm: (1) Move first 4 characters to end, (2) Replace letters with numbers (A=10, B=11, ..., Z=35), (3) Calculate remainder when divided by 97, (4) Remainder must equal 1 for valid IBAN. Example: GB82WEST12345698765432
+- Credit card numbers: Must follow valid card number formats with proper checksums (Luhn algorithm). Use formats like 4532-1234-5678-9010 or 4532123456789010
+- Phone numbers: Must be valid phone number formats. Include country codes when appropriate (e.g., +1-555-123-4567 or +44 20 7946 0958)
+- Email addresses: Must be valid email format (e.g., john.doe@example.com)
+- Dates: Must be valid dates in the expected format (e.g., YYYY-MM-DD, MM/DD/YYYY, DD.MM.YYYY)
+- Postal/ZIP codes: Must match the format for the country (e.g., 12345 for US ZIP, SW1A 1AA for UK postcodes)
+- Social Security Numbers (SSN): Must follow valid format (e.g., 123-45-6789 for US)
+- Tax IDs: Must follow valid tax ID formats for the country
+- URLs: Must be valid URL format (e.g., https://www.example.com)
+- Passwords: Should meet common password requirements (length, complexity) if indicated. If there's a confirm password field, use the same password.
+- Bank account numbers: Must follow valid formats for the country/region
+- Any field with a pattern attribute: Must match the regex pattern exactly
+- Related fields: Ensure consistency (e.g., confirm password matches password, billing address matches shipping if indicated)
+
+The data must be randomized but still valid. Answer only with the fake data in JSON format: '{data: [{
 field_query_selector: <valid_query_selector>,
 field_value: <fake_data>
 }] }'
@@ -94,7 +138,7 @@ Example output:
   },
   {
     field_query_selector: "#phone",
-    field_value: "1234567890"
+    field_value: "+1-555-123-4567"
   },
   {
     field_query_selector: "#address",
