@@ -41,9 +41,9 @@ function getContent({ form = '', field = '', labels = '' }) {
 
 async function fillOutField(targetElement) {
     const content = getContent({
-        field: targetElement.outerHTML,
+        field: compressHtml(targetElement.outerHTML),
         labels: getLabelsForElement(targetElement),
-        form: targetElement.form.outerHTML
+        form: compressHtml(targetElement.form.outerHTML)
     });
     const loadingDialog = showLoadingDialog();
     const data = await askForData({ systemPrompt: FIELD_FILLING_SYSTEM_PROMPT, content });
@@ -56,7 +56,7 @@ async function fillOutField(targetElement) {
 
 async function fillOutForm(form) {
     const content = getContent({
-        form: form.outerHTML,
+        form: compressHtml(form.outerHTML),
     });
     const loadingDialog = showLoadingDialog();
     const data = await askForData({ systemPrompt: FORM_FILLING_SYSTEM_PROMPT, content });
