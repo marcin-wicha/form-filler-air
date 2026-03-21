@@ -97,23 +97,22 @@ function safeQuerySelector(selector) {
 }
 
 async function askForData({ systemPrompt, content }) {
-    const { apiKey } = await chrome.storage.local.get('apiKey');
     const { model } = await chrome.storage.local.get('model');
 
 
-    const response = await fetch('https://models.github.ai/inference/chat/completions', {
+    const response = await fetch(`${FORM_FILLER_BACKEND_BASE_URL}/chat`, {
         method: 'POST',
         headers: {
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/vnd.github+json',
-            'X-GitHub-Api-Version': '2022-11-28'
+            'Content-Type': 'application/json'
         },
         body: JSON.stringify({
             model: model,
-            messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content }]
+            systemPrompt,
+            content
         })
     });
-    const message = await response.json();
-    try { return JSON.parse(message.choices[0].message.content).data; } catch (error) { return null; }
+    if (!response.ok) return null;
+
+    const payload = await response.json();
+    return payload.data ?? null;
 }
