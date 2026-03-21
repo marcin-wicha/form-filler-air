@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "lint:actions": "npx -y github-actionlint"
   },
   "type": "module",
   "author": "Marcin Wicha",
