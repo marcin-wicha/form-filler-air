@@ -19,7 +19,7 @@ fi
 
 STACK_NAME="${STACK_NAME:-form-filler-bedrock-backend}"
 AWS_REGION="${AWS_REGION:-us-east-1}"
-BEDROCK_MODEL_ID="${BEDROCK_MODEL_ID:-anthropic.claude-3-5-sonnet-20240620-v1:0}"
+BEDROCK_MODEL_ID="${BEDROCK_MODEL_ID:-auto}"
 CORS_ORIGIN="${CORS_ORIGIN:-*}"
 STAGE_NAME="${STAGE_NAME:-prod}"
 
