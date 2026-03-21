@@ -12,7 +12,7 @@ This folder contains an AWS Lambda handler that replaces direct GitHub Models ca
 
 - `AWS_REGION` (required) - AWS region where Bedrock is enabled (e.g. `us-east-1`).
 - `BEDROCK_MODEL_ID` (optional) - Default model to use when request does not provide one.
-  - Default: `anthropic.claude-3-5-sonnet-20240620-v1:0`
+  - Default: `auto` (automatically picks latest high-capability available text model)
 - `CORS_ORIGIN` (optional) - CORS origin. Default `*`.
 
 ## Deploy with AWS SAM (recommended)
@@ -62,7 +62,7 @@ You can override defaults:
 ```bash
 sam deploy \
   --parameter-overrides \
-  BedrockModelId=anthropic.claude-3-5-sonnet-20240620-v1:0 \
+  BedrockModelId=auto \
   CorsOrigin=* \
   StageName=prod
 ```
@@ -86,6 +86,6 @@ Set that URL in:
 - `template.yaml` provisions:
   - Lambda (Node.js 20)
   - HTTP API with routes: `/models`, `/healthcheck`, `/chat`
-  - IAM policy for Bedrock invocation
+  - IAM policy for Bedrock model invocation and model discovery
 - If you use a specific model policy scope later, narrow the IAM resource from `*` to model ARNs.
 

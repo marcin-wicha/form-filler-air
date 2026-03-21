@@ -1,13 +1,12 @@
-import { invokeBedrock, safeJsonParse } from './bedrock.js';
+import {
+  invokeBedrockWithModelFallback,
+  listAvailableTextModels,
+  safeJsonParse
+} from './bedrock.js';
 
 const corsOrigin = process.env.CORS_ORIGIN || '*';
-const defaultModelId = process.env.BEDROCK_MODEL_ID || 'anthropic.claude-3-5-sonnet-20240620-v1:0';
-
-const SUPPORTED_MODELS = [
-  { id: 'anthropic.claude-3-5-sonnet-20240620-v1:0', name: 'Claude 3.5 Sonnet' },
-  { id: 'anthropic.claude-3-7-sonnet-20250219-v1:0', name: 'Claude 3.7 Sonnet' },
-  { id: 'anthropic.claude-3-haiku-20240307-v1:0', name: 'Claude 3 Haiku' }
-];
+const defaultModelId = process.env.BEDROCK_MODEL_ID || 'auto';
+const AUTO_MODEL_ID = 'auto';
 
 function jsonResponse(statusCode, payload) {
   return {
@@ -32,7 +31,23 @@ function parseBody(event) {
 }
 
 async function handleModels() {
-  return jsonResponse(200, SUPPORTED_MODELS);
+  let discoveredModels = [];
+  try {
+    discoveredModels = await listAvailableTextModels();
+  } catch (error) {
+    console.warn('Unable to list Bedrock models; returning auto option only', error);
+  }
+  const models = [
+    {
+      id: AUTO_MODEL_ID,
+      name: 'Auto (latest high-capability model)'
+    },
+    ...discoveredModels.map((model) => ({
+      id: model.id,
+      name: `${model.name} (${model.provider})`
+    }))
+  ];
+  return jsonResponse(200, models);
 }
 
 async function handleHealthcheck(event) {
@@ -41,9 +56,10 @@ async function handleHealthcheck(event) {
     return jsonResponse(400, { error: 'Invalid JSON body' });
   }
 
-  const model = body.model || defaultModelId;
-  const content = await invokeBedrock({
-    modelId: model,
+  const selectedModel = body.model || defaultModelId;
+  const { content, modelId } = await invokeBedrockWithModelFallback({
+    requestedModelId: selectedModel,
+    defaultModelId,
     systemPrompt: "this is a healthcheck request, respond with 'ok' if the model is supported",
     userPrompt: 'did this work?'
   });
@@ -52,7 +68,7 @@ async function handleHealthcheck(event) {
     return jsonResponse(502, { error: 'Empty Bedrock response' });
   }
 
-  return jsonResponse(200, { status: 'ok' });
+  return jsonResponse(200, { status: 'ok', model: modelId });
 }
 
 async function handleChat(event) {
@@ -61,7 +77,7 @@ async function handleChat(event) {
     return jsonResponse(400, { error: 'Invalid JSON body' });
   }
 
-  const model = body.model || defaultModelId;
+  const selectedModel = body.model || defaultModelId;
   const systemPrompt = body.systemPrompt;
   const content = body.content;
 
@@ -69,8 +85,9 @@ async function handleChat(event) {
     return jsonResponse(400, { error: 'systemPrompt and content are required' });
   }
 
-  const rawContent = await invokeBedrock({
-    modelId: model,
+  const { content: rawContent, modelId } = await invokeBedrockWithModelFallback({
+    requestedModelId: selectedModel,
+    defaultModelId,
     systemPrompt,
     userPrompt: content
   });
@@ -86,7 +103,7 @@ async function handleChat(event) {
     });
   }
 
-  return jsonResponse(200, { data: parsed.data });
+  return jsonResponse(200, { data: parsed.data, model: modelId });
 }
 
 export async function handler(event) {
