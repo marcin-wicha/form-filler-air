@@ -1,0 +1,88 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Form Filler backend deployed with AWS SAM
+
+Parameters:
+  StageName:
+    Type: String
+    Default: prod
+    Description: API Gateway stage name
+  BedrockModelId:
+    Type: String
+    Default: anthropic.claude-3-5-sonnet-20240620-v1:0
+    Description: Default Bedrock model ID used when request omits model
+  CorsOrigin:
+    Type: String
+    Default: '*'
+    Description: Allowed CORS origin for browser extension requests
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 30
+    MemorySize: 512
+
+Resources:
+  FormFillerHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: !Ref StageName
+      CorsConfiguration:
+        AllowOrigins:
+          - !Ref CorsOrigin
+        AllowHeaders:
+          - content-type
+          - authorization
+        AllowMethods:
+          - GET
+          - POST
+          - OPTIONS
+
+  FormFillerBackendFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub form-filler-bedrock-backend-${StageName}
+      CodeUri: .
+      Handler: lambda.handler
+      Description: Lambda backend for Bedrock-powered form filling
+      Environment:
+        Variables:
+          AWS_REGION: !Ref AWS::Region
+          BEDROCK_MODEL_ID: !Ref BedrockModelId
+          CORS_ORIGIN: !Ref CorsOrigin
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Sid: BedrockInvoke
+              Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+                - bedrock:InvokeModelWithResponseStream
+              Resource: '*'
+      Events:
+        GetModels:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref FormFillerHttpApi
+            Path: /models
+            Method: GET
+        PostHealthcheck:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref FormFillerHttpApi
+            Path: /healthcheck
+            Method: POST
+        PostChat:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref FormFillerHttpApi
+            Path: /chat
+            Method: POST
+
+Outputs:
+  ApiBaseUrl:
+    Description: Base URL to configure in extension backend constant
+    Value: !Sub https://${FormFillerHttpApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}
+  BackendFunctionName:
+    Description: Deployed Lambda function name
+    Value: !Ref FormFillerBackendFunction

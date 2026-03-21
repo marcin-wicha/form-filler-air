@@ -1,0 +1,14 @@
+{
+  "name": "form-filler-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "AWS Lambda backend for Form Filler using Amazon Bedrock",
+  "main": "lambda.js",
+  "scripts": {
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.922.0"
+  }
+}
