@@ -31,16 +31,16 @@ jobs:
       STAGE_NAME: ${{ vars.BACKEND_STAGE_NAME || 'prod' }}
     steps:
       - name: Checkout repository
-      uses: actions/checkout@v4
+        uses: actions/checkout@v4
 
       - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-region: ${{ env.AWS_REGION }}
-        role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
 
       - name: Setup AWS SAM CLI
-      uses: aws-actions/setup-sam@v2
+        uses: aws-actions/setup-sam@v2
 
       - name: Deploy backend
-      run: bash ./deploy.sh
+        run: bash ./deploy.sh
