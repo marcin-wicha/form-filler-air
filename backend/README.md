@@ -15,17 +15,77 @@ This folder contains an AWS Lambda handler that replaces direct GitHub Models ca
   - Default: `anthropic.claude-3-5-sonnet-20240620-v1:0`
 - `CORS_ORIGIN` (optional) - CORS origin. Default `*`.
 
-## Deploy
+## Deploy with AWS SAM (recommended)
 
-1. Zip files in this directory (`lambda.js`, `bedrock.js`, `package.json`).
-2. Create/update Lambda with Node.js 20 runtime.
-3. Configure Lambda environment variables.
-4. Attach IAM permissions to invoke Bedrock model(s), for example:
-   - `bedrock:InvokeModel`
-   - `bedrock:InvokeModelWithResponseStream` (optional)
-5. Put API Gateway in front of Lambda with routes:
-   - `GET /models`
-   - `POST /healthcheck`
-   - `POST /chat`
-6. Replace `FORM_FILLER_BACKEND_BASE_URL` in `dist/extension/llm/system.js` with your API Gateway URL.
+### Prerequisites
+
+- AWS CLI configured (`aws configure`)
+- AWS SAM CLI installed
+- Docker running (required by `sam build --use-container`)
+- Bedrock model access enabled in your AWS account/region
+
+### One-time guided setup
+
+From this directory:
+
+```bash
+sam deploy --guided
+```
+
+Use these values when prompted:
+
+- Stack Name: `form-filler-bedrock-backend`
+- AWS Region: `us-east-1` (or your Bedrock-enabled region)
+- Confirm changes before deploy: `N`
+- Allow SAM CLI IAM role creation: `Y`
+- Save arguments to configuration file: `Y`
+
+This writes deploy defaults into `samconfig.toml`.
+
+### Fast deploy (after guided setup)
+
+```bash
+./deploy.sh
+```
+
+Or manually:
+
+```bash
+sam build --use-container
+sam deploy
+```
+
+### Deploy with custom values
+
+You can override defaults:
+
+```bash
+sam deploy \
+  --parameter-overrides \
+  BedrockModelId=anthropic.claude-3-5-sonnet-20240620-v1:0 \
+  CorsOrigin=* \
+  StageName=prod
+```
+
+### Get the API URL
+
+```bash
+aws cloudformation describe-stacks \
+  --stack-name form-filler-bedrock-backend \
+  --query "Stacks[0].Outputs[?OutputKey=='ApiBaseUrl'].OutputValue" \
+  --output text
+```
+
+Set that URL in:
+
+- `dist/extension/llm/system.js`
+  - `FORM_FILLER_BACKEND_BASE_URL = "https://.../prod"`
+
+### Notes
+
+- `template.yaml` provisions:
+  - Lambda (Node.js 20)
+  - HTTP API with routes: `/models`, `/healthcheck`, `/chat`
+  - IAM policy for Bedrock invocation
+- If you use a specific model policy scope later, narrow the IAM resource from `*` to model ARNs.
 
