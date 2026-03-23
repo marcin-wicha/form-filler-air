@@ -12,13 +12,60 @@ on:
 permissions:
   id-token: write
   contents: read
+  pull-requests: read
 
 concurrency:
   group: deploy-backend-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
+  evaluate-skip:
+    runs-on: ubuntu-latest
+    outputs:
+      skip_deploy: ${{ steps.check.outputs.skip_deploy }}
+    steps:
+      - name: Evaluate deploy skip label
+        id: check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const skipLabel = "SKIP DEPLOY";
+
+            if (context.eventName !== "push") {
+              core.info("Event is not push, deployment will run.");
+              core.setOutput("skip_deploy", "false");
+              return;
+            }
+
+            const { owner, repo } = context.repo;
+            const commit_sha = context.sha;
+            const response = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner,
+              repo,
+              commit_sha,
+            });
+
+            if (!response.data.length) {
+              core.info("No pull request is associated with this commit, deployment will run.");
+              core.setOutput("skip_deploy", "false");
+              return;
+            }
+
+            const exactMergePr = response.data.find((pr) => pr.merge_commit_sha === commit_sha);
+            const mergedPr = exactMergePr ?? response.data.find((pr) => pr.merged_at) ?? response.data[0];
+            const hasSkipLabel = mergedPr.labels.some((label) => label.name === skipLabel);
+
+            core.info(`Using PR #${mergedPr.number} to evaluate deploy label.`);
+            core.info(
+              hasSkipLabel
+                ? `Found "${skipLabel}" label, deployment will be skipped.`
+                : `Label "${skipLabel}" not found, deployment will run.`
+            );
+            core.setOutput("skip_deploy", hasSkipLabel ? "true" : "false");
+
   deploy:
+    needs: evaluate-skip
+    if: needs.evaluate-skip.outputs.skip_deploy != 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
