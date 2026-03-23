@@ -47,7 +47,6 @@ Resources:
       Description: Lambda backend for Bedrock-powered form filling
       Environment:
         Variables:
-          AWS_REGION: !Ref AWS::Region
           BEDROCK_MODEL_ID: !Ref BedrockModelId
           CORS_ORIGIN: !Ref CorsOrigin
       Policies:

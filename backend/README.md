@@ -10,7 +10,7 @@ This folder contains an AWS Lambda handler that replaces direct GitHub Models ca
 
 ## Environment variables
 
-- `AWS_REGION` (required) - AWS region where Bedrock is enabled (e.g. `us-east-1`).
+- `AWS_REGION` (provided by Lambda runtime) - region where Bedrock is enabled (e.g. `eu-north-1`).
 - `BEDROCK_MODEL_ID` (optional) - Default model to use when request does not provide one.
   - Default: `auto` (automatically picks latest high-capability available text model)
 - `CORS_ORIGIN` (optional) - CORS origin. Default `*`.
