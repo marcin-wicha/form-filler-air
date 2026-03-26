@@ -30,7 +30,16 @@ Data validation requirements:
 - Bank account numbers: Must follow valid formats for the country/region
 - Any field with a pattern attribute: Must match the regex pattern exactly
 
-The data must be randomized but still valid. Answer only with the fake data in JSON format: '{data: <fake data> }'
+The data must be randomized but still valid.
+
+CRITICAL OUTPUT FORMAT:
+- Return EXACTLY one valid JSON object and nothing else (no markdown, no code fences, no explanations).
+- The JSON MUST have a top-level string key \"data\".
+- All JSON keys MUST be in double quotes.
+- The JSON MUST be parseable by JSON.parse().
+
+Return format:
+{\"data\":\"<fake data>\"}
 Return only data for the field, not the entire form.
 
 Example input:
@@ -58,7 +67,7 @@ Example input:
 </form>
 
 Example output:
-{ data: "John Doe" }
+{\"data\":\"John Doe\"}
 
 Example with IBAN field:
 <field>
@@ -69,7 +78,7 @@ Example with IBAN field:
 </labels>
 
 Example output:
-{ data: "GB82WEST12345698765432" }
+{\"data\":\"GB82WEST12345698765432\"}
 `;
 
 const FORM_FILLING_SYSTEM_PROMPT = `You are a helpful assistant that helps the user fill out forms with relevant fake data.
@@ -97,10 +106,17 @@ Data validation requirements:
 - Any field with a pattern attribute: Must match the regex pattern exactly
 - Related fields: Ensure consistency (e.g., confirm password matches password, billing address matches shipping if indicated)
 
-The data must be randomized but still valid. Answer only with the fake data in JSON format: '{data: [{
-field_query_selector: <valid_query_selector>,
-field_value: <fake_data>
-}] }'
+The data must be randomized but still valid.
+
+CRITICAL OUTPUT FORMAT:
+- Return EXACTLY one valid JSON object and nothing else (no markdown, no code fences, no explanations).
+- The JSON MUST have a top-level key \"data\" whose value is an array.
+- Each array element MUST be an object with string keys \"field_query_selector\" and \"field_value\".
+- All JSON keys MUST be in double quotes.
+- The JSON MUST be parseable by JSON.parse().
+
+Return format:
+{\"data\":[{\"field_query_selector\":\"<valid_query_selector>\",\"field_value\":\"<fake_data>\"}]}
 
 Example input:
 <form>
@@ -121,30 +137,12 @@ Example input:
 </form>
 
 Example output:
-{ data: [
-  {
-    field_query_selector: "#name",
-    field_value: "John Doe"
-  },
-  {
-    field_query_selector: "#email",
-    field_value: "john.doe@example.com"
-  },
-  {
-    field_query_selector: "#password",
-    field_value: "password"
-  },
-  {
-    field_query_selector: "#confirm-password",
-    field_value: "password"
-  },
-  {
-    field_query_selector: "#phone",
-    field_value: "+1-555-123-4567"
-  },
-  {
-    field_query_selector: "#address",
-    field_value: "123 Main St, Anytown, USA"
-  }
+{\"data\":[
+  {\"field_query_selector\":\"#name\",\"field_value\":\"John Doe\"},
+  {\"field_query_selector\":\"#email\",\"field_value\":\"john.doe@example.com\"},
+  {\"field_query_selector\":\"#password\",\"field_value\":\"password\"},
+  {\"field_query_selector\":\"#confirm-password\",\"field_value\":\"password\"},
+  {\"field_query_selector\":\"#phone\",\"field_value\":\"+1-555-123-4567\"},
+  {\"field_query_selector\":\"#address\",\"field_value\":\"123 Main St, Anytown, USA\"}
 ]}
 `;
