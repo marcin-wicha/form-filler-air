@@ -80,7 +80,8 @@ function normalizeModelSummary(summary) {
     provider: summary?.providerName || 'Unknown',
     lifecycleStatus: summary?.modelLifecycle?.status || 'UNKNOWN',
     inputModalities: summary?.inputModalities || [],
-    outputModalities: summary?.outputModalities || []
+    outputModalities: summary?.outputModalities || [],
+    inferenceTypesSupported: summary?.inferenceTypesSupported || []
   };
 }
 
@@ -88,6 +89,15 @@ function modelSupportsText(model) {
   const input = model.inputModalities.map((value) => value.toUpperCase());
   const output = model.outputModalities.map((value) => value.toUpperCase());
   return input.includes('TEXT') && output.includes('TEXT');
+}
+
+function modelSupportsOnDemand(model) {
+  const supported = model?.inferenceTypesSupported;
+  if (!Array.isArray(supported) || supported.length === 0) {
+    // Older/partial SDK responses may omit this field; assume on-demand to avoid hiding models.
+    return true;
+  }
+  return supported.map((value) => `${value}`.toUpperCase()).includes('ON_DEMAND');
 }
 
 function isDeprecatedLifecycle(model) {
@@ -102,11 +112,14 @@ async function fetchModelCatalog() {
   const normalized = (response?.modelSummaries || []).map(normalizeModelSummary).filter(Boolean);
 
   const preferred = normalized
-    .filter((model) => modelSupportsText(model) && !isDeprecatedLifecycle(model))
+    .filter(
+      (model) =>
+        modelSupportsText(model) && modelSupportsOnDemand(model) && !isDeprecatedLifecycle(model)
+    )
     .sort((a, b) => scoreModelPriority(b) - scoreModelPriority(a));
 
   const fallback = normalized
-    .filter((model) => modelSupportsText(model) && isDeprecatedLifecycle(model))
+    .filter((model) => modelSupportsText(model) && modelSupportsOnDemand(model) && isDeprecatedLifecycle(model))
     .sort((a, b) => scoreModelPriority(b) - scoreModelPriority(a));
 
   return dedupeById([...preferred, ...fallback]);
@@ -141,14 +154,17 @@ function toUniqueCandidateIds(candidateIds) {
 function shouldFallbackToNextModel(error) {
   const message = `${error?.name || ''} ${error?.message || ''}`.toLowerCase();
   return (
-    message.includes('model') &&
-    (
-      message.includes('invalid') ||
+    // Treat "model can't be used as requested" as a reason to try another candidate.
+    (message.includes('model') || message.includes('inference profile') || message.includes('throughput')) &&
+    (message.includes('invalid') ||
       message.includes('not found') ||
       message.includes('unsupported') ||
+      message.includes("on-demand throughput isn’t supported") ||
+      message.includes("on-demand throughput isn't supported") ||
+      message.includes('inference profile') ||
+      message.includes('provisioned') ||
       message.includes('access denied') ||
-      message.includes('not authorized')
-    )
+      message.includes('not authorized'))
   );
 }
 
