@@ -5,7 +5,17 @@ document.addEventListener("mousedown", (e) => {
             element.removeAttribute("data-form-filler-target");
         });
         e.target.setAttribute("data-form-filler-target", "true");
-        chrome.runtime.sendMessage({ action: 'contextMenuOpened', hasForm: Boolean(e.target.form) });
+        // When the extension reloads/updates, previously-injected content scripts can remain on the page.
+        // Guard against "Extension context invalidated" by no-oping if runtime is gone and by swallowing lastError.
+        try {
+            if (!chrome?.runtime?.id) return;
+            chrome.runtime.sendMessage(
+                { action: 'contextMenuOpened', hasForm: Boolean(e.target.form) },
+                () => void chrome.runtime.lastError
+            );
+        } catch (_error) {
+            // Ignore: extension context invalidated / runtime unavailable.
+        }
     }
 }, true);
 

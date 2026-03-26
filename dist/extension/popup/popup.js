@@ -47,16 +47,35 @@ modelSelect.addEventListener('change', async (event) => {
         const healthcheckDiv = document.getElementById('healthcheck');
         healthcheckDiv.classList.remove('hidden');
         chrome.storage.local.set({ model: model });
-        chrome.contextMenus.create({
-            id: "form-filler_field",
-            title: `Fill out field with ${model}`,
-            contexts: ["editable"]
-        });
-        chrome.contextMenus.create({
-            id: "form-filler_form",
-            title: `Fill out this form with ${model}`,
-            contexts: ["editable"],
-            enabled: false,
-        });
+        // Menus may already exist (created by background on startup). Update if present; otherwise create.
+        try {
+            chrome.contextMenus.update("form-filler_field", {
+                title: `Fill out field with ${model}`
+            }, () => {
+                if (chrome.runtime.lastError) {
+                    chrome.contextMenus.create({
+                        id: "form-filler_field",
+                        title: `Fill out field with ${model}`,
+                        contexts: ["editable"]
+                    }, () => void chrome.runtime.lastError);
+                }
+            });
+            chrome.contextMenus.update("form-filler_form", {
+                title: `Fill out this form with ${model}`,
+                enabled: false
+            }, () => {
+                if (chrome.runtime.lastError) {
+                    chrome.contextMenus.create({
+                        id: "form-filler_form",
+                        title: `Fill out this form with ${model}`,
+                        contexts: ["editable"],
+                        enabled: false,
+                    }, () => void chrome.runtime.lastError);
+                }
+            });
+        }
+        catch (_error) {
+            // Ignore: extension context invalidated / runtime unavailable.
+        }
     }
 });
