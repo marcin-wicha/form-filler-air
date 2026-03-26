@@ -33,6 +33,72 @@ export function safeJsonParse(value) {
   }
 }
 
+function stripMarkdownFence(text) {
+  const t = `${text}`.trim();
+  if (!t.startsWith('```')) return t;
+  const afterOpen = t.indexOf('\n');
+  const bodyStart = afterOpen === -1 ? 3 : afterOpen + 1;
+  const closeIdx = t.lastIndexOf('```');
+  if (closeIdx <= bodyStart) return t;
+  return t.slice(bodyStart, closeIdx).trim();
+}
+
+/** First top-level `{ ... }` balanced for JSON strings (handles nested objects/arrays). */
+function extractFirstBalancedJsonObject(text) {
+  const start = text.indexOf('{');
+  if (start === -1) return null;
+  let depth = 0;
+  let inString = false;
+  let escape = false;
+  for (let i = start; i < text.length; i++) {
+    const c = text[i];
+    if (escape) {
+      escape = false;
+      continue;
+    }
+    if (inString) {
+      if (c === '\\') escape = true;
+      else if (c === '"') inString = false;
+      continue;
+    }
+    if (c === '"') {
+      inString = true;
+      continue;
+    }
+    if (c === '{') depth += 1;
+    else if (c === '}') {
+      depth -= 1;
+      if (depth === 0) return text.slice(start, i + 1);
+    }
+  }
+  return null;
+}
+
+/**
+ * Parse Converse output into `{ data }` for the extension contract.
+ * Strips markdown fences and extracts a JSON object when the model adds prose.
+ */
+export function parseChatModelPayload(rawText) {
+  if (typeof rawText !== 'string' || !rawText.trim()) return null;
+  let candidate = stripMarkdownFence(rawText.trim());
+  candidate = stripMarkdownFence(candidate);
+
+  let parsed = safeJsonParse(candidate);
+  if (parsed && typeof parsed === 'object' && parsed.data !== undefined) {
+    return parsed;
+  }
+
+  const slice = extractFirstBalancedJsonObject(candidate);
+  if (slice) {
+    parsed = safeJsonParse(slice);
+    if (parsed && typeof parsed === 'object' && parsed.data !== undefined) {
+      return parsed;
+    }
+  }
+
+  return null;
+}
+
 function scoreModelPriority(model) {
   const haystack = `${model.id} ${model.name}`.toLowerCase();
   let score = 0;

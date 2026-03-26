@@ -1,7 +1,7 @@
 import {
   invokeBedrockWithModelFallback,
   listAvailableTextModels,
-  safeJsonParse
+  parseChatModelPayload
 } from './bedrock.js';
 
 const corsOrigin = process.env.CORS_ORIGIN || '*';
@@ -96,8 +96,12 @@ async function handleChat(event) {
     return jsonResponse(502, { error: 'Empty Bedrock response' });
   }
 
-  const parsed = safeJsonParse(rawContent);
-  if (!parsed || typeof parsed !== 'object' || parsed.data === undefined) {
+  const parsed = parseChatModelPayload(rawContent);
+  if (!parsed) {
+    console.warn(
+      'Chat: model output not parseable as JSON with data; snippet:',
+      rawContent.slice(0, 500)
+    );
     return jsonResponse(502, {
       error: 'Model response did not contain valid JSON with a data field'
     });
