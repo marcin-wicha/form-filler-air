@@ -1,4 +1,4 @@
-const FORM_FILLER_BACKEND_BASE_URL = "https://your-api-id.execute-api.us-east-1.amazonaws.com/prod";
+const FORM_FILLER_BACKEND_BASE_URL = "https://itkghdvxpj.execute-api.eu-north-1.amazonaws.com/prod";
 
 const FIELD_FILLING_SYSTEM_PROMPT = `You are a helpful assistant that helps the user fill out forms with relevant fake data.
 
